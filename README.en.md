@@ -4,6 +4,12 @@
 
 **Find facilities, choose a reachable route, and follow readable visual directions inside TownPass.**
 
+[![Web checks](https://github.com/yoyo899843/CodeFest-2026-Taipei-Maze/actions/workflows/web-ci.yml/badge.svg)](https://github.com/yoyo899843/CodeFest-2026-Taipei-Maze/actions/workflows/web-ci.yml)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](./LICENSE)
+![Vue 3](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs)
+![Node.js 20](https://img.shields.io/badge/Node.js-20-5FA04E?logo=nodedotjs)
+![Seven languages](https://img.shields.io/badge/UI-7_languages-468d9b)
+
 [繁體中文](./README.md) · **English**
 
 [Try the service](https://codefest.yoyo899843.com/station-map) · [Changelog](./CHANGELOG.md) · [Contributing](./.github/CONTRIBUTING.md) · [Architecture](./.github/ARCHITECTURE.md)
@@ -18,7 +24,7 @@ We preserve our competition work as **`v0.1.0`**, including a partial diagram gr
 
 ## Contents
 
-[Why](#why-this-project) · [Screenshot](#actual-screenshot) · [Features](#features-and-scope) · [Quick start](#quick-start) · [Walkthrough](#walkthrough-and-demo) · [Architecture](#architecture) · [Shortest paths](#how-we-compute-shortest-paths) · [Data](#data-and-coverage) · [Tests](#tests-and-quality) · [Deployment](#deployment-and-versioning) · [License](#provenance-and-licensing)
+[Why](#why-this-project) · [Screenshot](#actual-screenshot) · [Floor maps](#full-floor-maps) · [Features](#features-and-scope) · [Privacy](#privacy-and-permissions) · [Quick start](#quick-start) · [Walkthrough](#walkthrough-and-demo) · [Architecture](#architecture) · [Shortest paths](#how-we-compute-shortest-paths) · [Data](#data-and-coverage) · [Tests](#tests-and-quality) · [Deployment](#deployment-and-versioning) · [License](#provenance-and-licensing) · [Contributors](#contributors)
 
 ## Why this project
 
@@ -37,6 +43,8 @@ We use “understand what to do next” as the shared goal behind our interface 
 ## Actual screenshot
 
 We bring facility search, routing and position recovery into one interface. Explore the actual mobile and wide-screen views below; select an image to open the original.
+
+> We capture the production website with Playwright driving Chrome (mobile 430 × 932, wide screen 1440 × 1000) after real interactions. These are browser captures, not Android/iPhone WebView or field-validation records. Revision, URL and layout metrics are recorded in [`assets/screenshots/manifest.json`](./assets/screenshots/manifest.json).
 
 <table>
 <tr><th>Facilities and floor map</th><th>Destination search</th><th>Inline map and directions</th></tr>
@@ -70,6 +78,32 @@ We bring facility search, routing and position recovery into one interface. Expl
 
 [![Information and wide-screen guidance](./assets/screenshots/desktop-route.png)](./assets/screenshots/desktop-route.png)
 
+## Full floor maps
+
+The left column shows the full in-app map of each floor at 1× zoom. The right column shows the walking-network coverage of the same floor, generated from `walking-network.json` by [`render-walking-maps.mjs`](./app/scripts/render-walking-maps.mjs). Legend:
+
+- Teal solid lines: corridors derived from the Taipei Metro station plan.
+- Orange dashed lines: corridors derived from schematic redraws (1F and the B2 railway platforms).
+- Grey dotted lines: inferred entrances with unknown accessibility; step-free routes never use them.
+- Grey blocks: non-metro areas such as car parks; routes never cross them.
+- Dark dots: bound places.
+- Red rings: places not bound to the network.
+
+<table>
+<tr><th>Floor</th><th>App map</th><th>Walking network</th></tr>
+<tr><td align="center"><b>1F</b><br>46 / 46</td><td><a href="./assets/maps/floor-1f.png"><img src="./assets/maps/floor-1f.png" alt="Full 1F concourse map" width="420"></a></td><td><a href="./assets/maps/walk-1f.svg"><img src="./assets/maps/walk-1f.svg" alt="1F walking network coverage" width="420"></a></td></tr>
+<tr><td align="center"><b>B1</b><br>42 / 44</td><td><a href="./assets/maps/floor-b1.png"><img src="./assets/maps/floor-b1.png" alt="Full B1 map" width="420"></a></td><td><a href="./assets/maps/walk-b1.svg"><img src="./assets/maps/walk-b1.svg" alt="B1 walking network coverage" width="420"></a></td></tr>
+<tr><td align="center"><b>B2</b><br>86 / 86</td><td><a href="./assets/maps/floor-b2.png"><img src="./assets/maps/floor-b2.png" alt="Full B2 map with the Bannan line concourse and TRA/THSR platforms" width="420"></a></td><td><a href="./assets/maps/walk-b2.svg"><img src="./assets/maps/walk-b2.svg" alt="B2 walking network coverage" width="420"></a></td></tr>
+<tr><td align="center"><b>B3</b><br>35 / 35</td><td><a href="./assets/maps/floor-b3.png"><img src="./assets/maps/floor-b3.png" alt="Full B3 map" width="420"></a></td><td><a href="./assets/maps/walk-b3.svg"><img src="./assets/maps/walk-b3.svg" alt="B3 walking network coverage" width="420"></a></td></tr>
+<tr><td align="center"><b>B4</b><br>17 / 17</td><td><a href="./assets/maps/floor-b4.png"><img src="./assets/maps/floor-b4.png" alt="Full B4 map" width="420"></a></td><td><a href="./assets/maps/walk-b4.svg"><img src="./assets/maps/walk-b4.svg" alt="B4 walking network coverage" width="420"></a></td></tr>
+</table>
+
+```bash
+cd app
+npm run build:walking       # rebuild the walking graph
+npm run render:walking-maps # regenerate the coverage maps in the right column
+```
+
 ## Features and scope
 
 - **Searchable endpoints:** collapsible floor groups, category/name/operator/exit-code/number matching, multilingual synonyms and bounded typo tolerance.
@@ -83,6 +117,17 @@ We bring facility search, routing and position recovery into one interface. Expl
 - **Local facility helper:** factual station-data answers, progress events, incremental text and facility cards; suggestions remain reusable.
 
 We center this competition version on local search, diagram routing, inline guidance and position recovery. Our [Competition version scope](#competition-version-scope) describes the boundaries of each capability.
+
+## Privacy and permissions
+
+The main flow works without handing over personal data:
+
+- **No account, GPS or notifications:** search, routing and guidance need no sign-in. Indoor position comes only from a QR code the person chooses to scan; we do not use GPS or track position or heading in the background.
+- **A QR scan describes only that moment:** we use it to confirm where someone is now. We never infer which way they face from a QR code and do not keep a movement history.
+- **Sharing sends a fixed place:** a shared link carries only a place ID, never the sender's position, time or route; it is not live location sharing.
+- **No remote AI, translation or speech services:** the seven languages, Zhuyin and helper answers come from local data, and questions are not sent to a cloud model.
+- **Microphone only on request:** optional voice input asks for permission only after the person taps it, and typing always remains available.
+- **The staff card stays on the phone:** the screen shown to station staff uploads nothing.
 
 ## Quick start
 
@@ -104,6 +149,22 @@ We support manual endpoints, search, routing, map interaction, steps, fixed-poin
 We confirm position at scan time and express directions in map bearings. Our current flow does not use GPS for indoor positioning or continuously track the phone's position or heading.
 
 We keep the navigation UI and core logic on the web and reuse the host's native scanning capability. Our [TownPass integration notes](./integration/townpass/README.md) describe bridge and optional capability boundaries.
+
+### Testing inside TownPass (local simulator)
+
+TownPass is a **separate checkout** that this project does not modify; `integration/townpass/` only keeps earlier integration experiments and license records and is never applied automatically. If your local TownPass already has test entries, they map as follows:
+
+| Entry | Web source | Best for |
+| --- | --- | --- |
+| CodeFest live preview | `127.0.0.1:8082` on the development computer (`npm run serve` above) | Simulators; reload to see code changes |
+| CodeFest test environment | Web bundle packaged into the app, served on the phone at `127.0.0.1:8766` | Physical devices or offline use; repackage after web changes |
+
+```bash
+bash scripts/townpass-env.sh bundle-web   # package the current app/dist into the TownPass assets
+bash scripts/townpass-env.sh build-ios --no-pub
+```
+
+On a physical phone, `127.0.0.1` is the phone itself and cannot reach the computer's port 8082, so devices must use the packaged bundle. Scanning, back navigation, background recovery and dual-platform behavior still need on-device validation; see the [integration notes](./integration/townpass/README.md).
 
 ## Walkthrough and Demo
 
@@ -127,6 +188,8 @@ flowchart LR
 2. For nearby facilities, choose a category and enable Nearest reachable. Enable Step-free route when needed.
 3. Select Go. Compare the map, direction and landmarks. Advancing a step does not update actual position.
 4. Rescan if uncertain; manually confirm arrival and finish without fabricating a new QR position.
+
+### Reproducible scenarios
 
 | Scenario | Start → destination | Conditions / expected result |
 | --- | --- | --- |
@@ -171,6 +234,17 @@ flowchart TB
 - **Assistant:** We use internal `thinking`, `delta` and `done` events to keep local queries separate from progressive UI rendering.
 - **Delivery:** We build static assets through Docker, serve them with nginx and run checks/deployment through GitHub Actions.
 
+### Technology stack
+
+| Layer | Technology |
+| --- | --- |
+| Web | Vue 3, Vue Router, JavaScript ES modules, HTML/CSS, SVG (built with Vue CLI) |
+| Routing and search | Custom Dijkstra routing with access filters, Unicode normalization, Optimal String Alignment typo tolerance, local multilingual dictionary |
+| Data | Versioned JSON (places, floor connections, compact walking graph), seven message catalogs, Zhuyin lexicon |
+| Host integration | TownPass (Flutter) WebView, `flutterObject` JSON bridge, native `qr_code_scan` |
+| Quality | Node.js built-in test runner, Vue SFC renderer tests, ESLint, Prettier, asset consistency validation, Python `unittest`, GitHub Actions |
+| Delivery | Multi-stage Docker build, nginx static site, Docker Compose, Cloudflare Tunnel or an existing reverse proxy |
+
 ### Repository layout
 
 ```text
@@ -207,7 +281,7 @@ We separate navigation, search, position state and presentation by feature so th
 
 We model navigation as a weighted directed graph `G = (V, E)`. Nodes represent facilities, corridor turns and connector endpoints. We resolve a selected place ID through a binding before routing.
 
-Our current expanded graph has **359 nodes and 3,162 directed edges**, comprising 1,562 corridor pairs and 38 vertical directed edges. Only 125 nodes bind selectable places; the others mainly support entrances and turns. We do not expose every helper node as a facility or QR anchor.
+Our current expanded graph has **519 nodes and 4,458 directed edges**, comprising 2,210 corridor pairs (640 of them from schematic redraws of 1F and the B2 platforms) and 38 vertical directed edges. 226 nodes bind selectable places; the others mainly support entrances and turns. We do not expose every helper node as a facility or QR anchor.
 
 #### 1. Building a walkable diagram graph
 
@@ -360,21 +434,32 @@ Our helper uses local `thinking`, `delta` and `done` events for processing statu
 
 | Floor | Displayed places | Bound to walking graph |
 | --- | ---: | ---: |
-| 1F | 46 | 0 |
-| B1 | 44 | 41 |
-| B2 | 86 | 32 |
+| 1F | 46 | 46 (schematic redraw) |
+| B1 | 44 | 42 |
+| B2 | 86 | 86 (including schematic redraws of four platforms) |
 | B3 | 35 | 35 |
 | B4 | 17 | 17 |
-| **Total** | **228** | **125** |
+| **Total** | **228** | **226** |
 
-We use versioned graph data with 19 recorded floor connections and **relative diagram costs**, without converting them to surveyed meters or journey time. 1F, B2 railway platforms and some B1 points are outside this version's routable coverage.
+We use versioned graph data with 19 recorded floor connections and **relative diagram costs**, without converting them to surveyed meters or journey time.
+
+- **1F concourse and B2 TRA/THSR platforms:** bound through schematic redraws. Their corridors are marked `schematic` with their own sources and can be routed within each area. No reliable source yet connects them to metro floors B1–B4, so we **have not invented any vertical links**; routes from the metro area to 1F or a platform honestly report that no route exists.
+- **Two unbound points:** `b1-qr-01` (outer corner of the Airport MRT block) and `b1-qr-05` (east edge of the east car park) are demo QR anchors whose coordinates are pinned by an earlier decision. No metro corridor reaches them, so they stay unbound.
+- See [Full floor maps](#full-floor-maps) for each floor's coverage.
 
 We use the following sources to build and review the station data:
 
-- **Taipei Metro station plans, facilities and cross-sections:** relative floor, corridor and equipment geometry.
-- **TRA/THSR official plans:** railway platform order and equipment checks; preserve red/purple markers without fabricating track crossings.
-- **Taipei Open Data:** 10 official CSV research snapshots and station subsets; a 48-source index does not mean 48 live integrations.
-- **Owner-supplied 1F plan photograph:** diagram reference only; the source and derivative terms are recorded in our third-party notices.
+| Data | Provider | Link | Use |
+| --- | --- | --- | --- |
+| Taipei Main Station plan (B1–B4) | Taipei Rapid Transit Corporation | [051.pdf](https://web.metro.taipei/img/ALL/INFOPDF/051.pdf) | Redrawn metro floors, corridors and equipment positions; main walking-graph source |
+| Taipei Main Station cross-section | Taipei Rapid Transit Corporation | [Station information](https://web.metro.taipei/pages2026/WebStation/051/4) | Floor relationships and vertical equipment |
+| Taipei Station B2 plan | Taiwan Railway Corporation | [Official plan](https://tip.railway.gov.tw/tra-tip-web/tip/img/0a00114c-3667-4e2f-a897-78b2864d8eba/1140x900) | TRA/THSR platform order and B2 platform schematics |
+| THSR Taipei Station plan | Taiwan High Speed Rail Corporation | [Taipei2.pdf](https://www.thsrc.com.tw/event/map/Taipei2.pdf) | THSR platform equipment checks |
+| Taipei Station transfer information | Taiwan Railway Corporation | [Transfer information](https://www.railway.gov.tw/tra-tip-web/tip/tip00H/tipH41/viewTransfer/1000) | Railway and metro transfer checks |
+| D01–D10 official open data | Taipei Rapid Transit Corporation; Department of Environmental Protection, Taipei City Government | [Taipei Open Data](https://data.taipei); per-dataset links in [ATTRIBUTION](./data/ATTRIBUTION.md) | Research snapshots and station subsets for facilities, accessibility and elevators, entrances, public toilets and transfer walking times |
+| Taipei Main Station 1F plan photograph | Supplied by the project owner (credited on the image to 萬俊廷) | Original photo not included | Schematic redraw of the 1F concourse; rights review incomplete |
+
+Open data is attributed under the [Open Government Data License, version 1.0](https://data.gov.tw/license); the data and its derivatives keep that license and do not become AGPL by being in this repository. Map derivatives of station plans and the photograph are competition prototypes whose redistribution rights are still under review. A 48-source index does not mean 48 live integrations.
 
 [Research data](./data/README.md) · [Attribution](./data/ATTRIBUTION.md) · [Source catalog](./data/SOURCE_CATALOG.md) · [Third-party notices](./THIRD_PARTY_NOTICES.md)
 
@@ -398,6 +483,15 @@ cd ..
 python3 -m unittest discover -s tools -p 'test_*.py'
 git diff --check
 ```
+
+| Scope | Command | Status |
+| --- | --- | --- |
+| Web unit and renderer tests | `npm test` | 264 tests passing |
+| Code style | `npm run lint` | ESLint + Prettier, no issues |
+| Data consistency | `npm run validate:assets` | Station data, seven catalogs, QR coordinates and walking-graph output consistent |
+| Build | `npm run build` | Succeeds; output in `app/dist/` |
+| Data tools | `python3 -m unittest discover -s tools -p 'test_*.py'` | 10 tests passing |
+| CI | [Web checks](./.github/workflows/web-ci.yml) | Runs on every push to `main`, every pull request and manual dispatch |
 
 We run web and Python checks through Web checks, covering routes/restrictions, search, bridge state, location links, sharing, arrival and Vue renderer output. We build production files into `app/dist/` and separately validate browser visuals, native camera, assistive technology, lifecycle and field behavior.
 
@@ -432,7 +526,7 @@ We retain this project as a competition artifact and reproducible technical impl
 
 | Area | Included scope |
 | --- | --- |
-| Navigation data | Partial diagram graph with 125 bound places; 228 displayed places |
+| Navigation data | Diagram walking graph with 226 of 228 places bound; 1F and railway platforms route within their areas but are not yet linked to the metro area |
 | QR position | Test codes and fixed-point positioning; labels are not installed on site |
 | Step-free access | Graph filters for stairs and unknown accessibility; no field-access certification |
 | M8 scenario | Routing ends at the B1 exit point and does not cover the full wheelchair journey to street level |
@@ -446,7 +540,7 @@ We provide source, attribution and build instructions so you can understand the 
 
 ## Contributing and security
 
-We preserve development and contribution guidance for reproduction and independent forks. See [Contributing](./.github/CONTRIBUTING.md) and [Security](./.github/SECURITY.md). Reports should include revision, device, locale/mode, point IDs, route options and reproduction steps. Do not publish personal data, tokens or private scan contents. Use English Conventional Commits and the open-source PR template.
+We preserve development and contribution guidance for reproduction and independent forks. See [Contributing](./.github/CONTRIBUTING.md) and [Security](./.github/SECURITY.md). Reports should include revision, device, locale/mode, point IDs, route options and reproduction steps. Do not publish personal data, tokens or private scan contents. Use English Conventional Commits and the [open-source PR template](./.github/PULL_REQUEST_TEMPLATE.md). Project rules for AI coding agents are in [AGENTS.md](./AGENTS.md); release notes are in the [CHANGELOG](./CHANGELOG.md).
 
 ## Provenance and licensing
 
@@ -454,4 +548,19 @@ We publish our original code under **AGPL-3.0-or-later**: [LICENSE](./LICENSE), 
 
 We record research attribution in [data/ATTRIBUTION.md](./data/ATTRIBUTION.md); imported prototype code and map derivatives retain their respective redistribution terms. Sources, terms and review status are listed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
 
-We thank TownPass, Taipei Metro, TRA, THSR and Taipei Open Data for references and foundations. We develop this project independently; these organizations have not endorsed it as an official service.
+- **TownPass:** the host app is [TownPass](https://github.com/taipei-doit/TownPass) (GPL-3.0), open-sourced by the Department of Information Technology, Taipei City Government. This repository contains no host code; the historical records in `integration/townpass/` keep the upstream GPL notices in [`integration/townpass/licenses/`](./integration/townpass/licenses/).
+- **Fonts:** the web app bundles no font files and only uses fonts already on the device (such as PingFang TC and system UI fonts).
+- **Models:** optional on-device model weights are not included in this repository or the web app and follow their own licenses and terms.
+- **Maps and data:** handled under each source's terms listed in [Data and coverage](#data-and-coverage); see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for the full record.
+
+### Acknowledgements
+
+- The **Department of Information Technology, Taipei City Government** for open-sourcing [TownPass](https://github.com/taipei-doit/TownPass) and providing TownPass development guides and design resources.
+- **Station data providers:** Taipei Rapid Transit Corporation, Taiwan Railway Corporation, Taiwan High Speed Rail Corporation, the Department of Environmental Protection of the Taipei City Government, and [Taipei Open Data](https://data.taipei).
+- **Open-source projects:** [Vue](https://vuejs.org/), [Vue Router](https://router.vuejs.org/), [Vue CLI](https://cli.vuejs.org/), [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Playwright](https://playwright.dev/) (screenshots), [nginx](https://nginx.org/) and the Docker community.
+
+We develop this project independently; these organizations have not endorsed it as an official service.
+
+### Contributors
+
+[ShiYu0318](https://github.com/ShiYu0318) · [Jerryguo888](https://github.com/Jerryguo888) · [yoyo899843](https://github.com/yoyo899843) · [Clare0808](https://github.com/Clare0808) · [enkai0630](https://github.com/enkai0630) (full list: [Contributors](https://github.com/yoyo899843/CodeFest-2026-Taipei-Maze/graphs/contributors))
